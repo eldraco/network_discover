@@ -4,10 +4,12 @@ from textual.widget import Widget
 from textual.widgets import Static
 from textual import events
 from rich.table import Table
+from textual.widgets import DataTable
+import json
 
 import sqlite3
 
-def read_data_from_db(db_path)-> Table:
+def read_data_from_db_Datatable(db_path, table)-> None:
     try:
         # Connect to the existing SQLite database
         conn = sqlite3.connect(db_path)
@@ -17,7 +19,7 @@ def read_data_from_db(db_path)-> Table:
         cursor.execute("SELECT ip, mac, hostname, protocol, os_name, os_family, os_accuracy, os_gen, last_update, state, mac_vendor, whois FROM hosts")
         rows = cursor.fetchall()
 
-        table = Table("IP", "MAC", "Hostname", "State", "MAC Vendor", "WHOIS")
+        table.add_columns("IP", "MAC", "Hostname", "State", "MAC Vendor", "WHOIS")
 
         # Data in DB is 0: ip, 1: mac, 2: hostname, 3: protocol, 4: os_name, 5: os_family, 6: os_accuracy, 7: os_gen, 8: last_update, 9: state, 10: mac_vendor, 11: whois
         for data in rows:
@@ -30,7 +32,7 @@ def read_data_from_db(db_path)-> Table:
             if state == 'up':
                 table.add_row(ip, mac, hostname, state, mac_vendor, whois)
         conn.close()
-        return table
+        return None
 
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -39,22 +41,6 @@ def read_data_from_db(db_path)-> Table:
         # Close the connection
         if conn:
             conn.close()
-
-class Hello(Static):
-    """Display a greeting."""
-    BINDINGS = [ ("u", "update", "Update")]
-
-
-    def on_mount(self) -> None:
-        self.action_update()
-        self.tooltip = 'List of devices found in the network'
-
-    def action_update(self) -> None:
-        # Read data 
-        # Specify the path to your existing SQLite database
-        existing_db_path = 'test4.sqlite'
-        output = read_data_from_db(existing_db_path)
-        self.update(output)
 
 class NetworkDiscover(App):
     CSS_PATH = "network_discover.tcss"
@@ -74,10 +60,13 @@ class NetworkDiscover(App):
     ]
 
     def compose(self) -> ComposeResult:
-        yield Hello()
+        yield DataTable()
 
     def on_mount(self) -> None:
         self.screen.styles.background = "darkblue"
+        table = self.query_one(DataTable)
+        existing_db_path = 'test4.sqlite'
+        read_data_from_db_Datatable(existing_db_path, table)
 
     def on_key(self, event: events.Key) -> None:
         if event.key.isdecimal():
