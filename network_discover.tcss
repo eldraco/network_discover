@@ -1,13 +1,14 @@
 Screen {
     align: center middle;
-}
+  }
 
-Hello {
+DataTable {
     width: auto;
     height: auto;
     padding: 1 2;
-    background: $panel;
     color: $text;
-    border: $secondary tall;
+    height: auto;
     content-align: center middle;
-}
+    border: $secondary tall;
+    background: $panel;
+    }
