@@ -3,8 +3,8 @@ Screen {
   }
 
 DataTable {
-    width: auto;
-    height: auto;
+    width: 90%;
+    height: 90%;
     padding: 1 2;
     color: $text;
     height: auto;
@@ -12,3 +12,16 @@ DataTable {
     border: $secondary tall;
     background: $panel;
     }
+
+Static.help {
+    display: none;
+    align: center middle;
+    width: 90%;
+    height: 90%;
+    padding: 1 2;
+    color: $text;
+    height: auto;
+    content-align: center middle;
+    border: $secondary tall;
+    background: $panel;
+}
