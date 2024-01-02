@@ -28,7 +28,6 @@ HELP = """Network Discover uses nmap in the background to find all the computers
           It can also show the hosts that were found before but are not present now.
        """
 
-
 def read_data_from_db_Datatable(db_path, table)-> None:
     """
     The main function to read the sqlite DB and add it to the table.
@@ -56,17 +55,16 @@ def read_data_from_db_Datatable(db_path, table)-> None:
             whois = data[11] if data[11] else ''
             if state == 'up':
                 try:
-                    this_row = table.get_row(mac)
+                    this_row = table.get_row(ip)
                     # The row exists with this MAC. Update
 
                     # Are all rields equal? Should we update it or not?
                     if str(this_row[0]) == ip and str(this_row[1]) == mac and str(this_row[2]) == hostname and str(this_row[3]) == state and str(this_row[4]) == mac_vendor and str(this_row[5]) == whois:
                         # Everything is the same, dont update
-                        #table.update_cell(mac, columns_key[6], '')
                         continue
                     
                     # Some fields differ, so replace the data
-                    table.remove_row(mac)
+                    table.remove_row(ip)
                     table.add_row(
                             Text(str(ip), style="italic #03AC13", justify="right"), 
                             Text(str(mac), style="italic #03AC13", justify="right"), 
@@ -77,7 +75,7 @@ def read_data_from_db_Datatable(db_path, table)-> None:
                             Text('Updated', style="italic #03AC13", justify="right"), 
                             Text(f'{datetime.now()}', style="italic #03AC13", justify="right"), 
                             label=index, 
-                            key=mac)
+                            key=ip)
                 except:
                     # If the row is not there. Add it
                     #logging.info(f'Not there the mac: {mac}')
@@ -91,7 +89,7 @@ def read_data_from_db_Datatable(db_path, table)-> None:
                             Text('New', style="italic #03AC13", justify="right"), 
                             Text(f'{datetime.now()}', style="italic #03AC13", justify="right"), 
                             label=index, 
-                            key=mac
+                            key= ip
                             )
                 table.refresh_row(index)
                 index += 1
@@ -133,6 +131,8 @@ class validate_iprange(Validator):
         try:
             if ipaddress.IPv4Network(value):
                 return True
+            elif ipaddress.IPv6Network(value):
+                return True
             else:
                 return False
         except ValueError:
@@ -172,22 +172,38 @@ class NetworkDiscover(App):
         self.notify("Hosts updated.")
 
     @work(thread=True)
+    @on(Input.Submitted)
     async def run_nmap(self, input)-> None:
         """
-        Run nmap again
-        #logging.info('calling nmap')
+        Run nmap
         """
-        command = f'nmap -sn {input.value} -oX nmap-result.xml'
+        self.notify(f"Nmap Running to {input.value}")
+        if ipaddress.IPv4Network(input.value):
+            # ipv4
+            net_type=''
+        elif ipaddress.IPv6Network(input.value):
+            # ipv6
+            net_type='-6'
+        
+        command = f'nmap -sn {net_type} {input.value} -oX nmap-result.xml -T5 --min-parallelism 100 --max-rtt-timeout 5 --max-retries 1 --max-scan-delay 0 --min-rate 10000'
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
         logging.info(result.stdout)
+        self.notify(f"Nmap finished to {input.value}.")
 
+        self.notify("Importing xml to sqlite")
         command = 'python nmapdb.py -c nmapdb.sql -d nmap.sqlite nmap-result.xml'
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
         logging.info(result.stdout)
-    
+
+        table = self.query_one(DataTable)
+        existing_db_path = 'nmap.sqlite'
+        read_data_from_db_Datatable(existing_db_path, table)
+        self.notify("Hosts updated.")
+
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Input(placeholder="IP range to check", classes='input', restrict=r"[0123456789./]*", max_length=18, validate_on=["submitted"], 
+        # The input is restricted to some chars
+        yield Input(placeholder="IP range to check", classes='input', restrict=r"[0123456789./:abcdef]*", max_length=40, validate_on=["submitted"], 
                     validators=[
                     validate_iprange()  
             ])
@@ -223,6 +239,9 @@ class NetworkDiscover(App):
     def on_key(self, event: events.Key) -> None:
         if event.key.isdecimal():
             self.screen.styles.background = self.COLORS[int(event.key)]
+        elif event.key == 'q':
+            self.exit()
+
 
 if __name__ == "__main__":
     app = NetworkDiscover()
