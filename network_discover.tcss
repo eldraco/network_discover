@@ -2,10 +2,28 @@ Screen {
     align: center middle;
   }
 
+Input {
+    width: 90%;
+    height: 90%;
+    padding: 0 0;
+    color: $text;
+    height: auto;
+    content-align: center middle;
+    border: $secondary tall;
+    background: $panel;
+}
+
+Input.-valid {
+        border: tall $success 60%;
+    }
+Input.-valid:focus {
+        border: tall $success;
+    }
+
 DataTable {
     width: 90%;
     height: 90%;
-    padding: 1 2;
+    padding: 0 0;
     color: $text;
     height: auto;
     content-align: center middle;
@@ -18,7 +36,7 @@ Static.help {
     align: center middle;
     width: 90%;
     height: 90%;
-    padding: 1 2;
+    padding: 0 0;
     color: $text;
     height: auto;
     content-align: center middle;

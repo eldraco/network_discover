@@ -164,19 +164,20 @@ class NetworkDiscover(App):
         """Update the list of hosts
         By running nmap again"""
         self.notify('Running nmap')
-        self.run_nmap()
+        input = self.query_one(Input)
+        self.run_nmap(input)
         table = self.query_one(DataTable)
         existing_db_path = 'nmap.sqlite'
         read_data_from_db_Datatable(existing_db_path, table)
         self.notify("Hosts updated.")
 
     @work(thread=True)
-    async def run_nmap(sel)-> None:
+    async def run_nmap(self, input)-> None:
         """
         Run nmap again
         #logging.info('calling nmap')
         """
-        command = 'nmap -sn 192.168.2.0/24 -oX nmap-result.xml'
+        command = f'nmap -sn {input.value} -oX nmap-result.xml'
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
         logging.info(result.stdout)
 
