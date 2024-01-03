@@ -11,6 +11,9 @@ Author: Sebastian Garcia, eldraco@gmail.com
 
 ```python3 network_disoverer.py```
 
+If you want to do better nmap scans, run with sudo.
+```sudo python3 network_disoverer.py```
+
     - Put a network range in the input (IPv4 or IPv6).
     - Press Enter
     - The table will be updated automatically.
