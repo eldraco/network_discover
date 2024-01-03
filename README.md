@@ -3,6 +3,9 @@ Network discover is a python tool to find and monitor which hosts are UP in a ne
 
 Author: Sebastian Garcia, eldraco@gmail.com
 
+![screenshot1](https://github.com/eldraco/network_discover/assets/2458867/5ab1a186-f86d-4dfb-80f0-febfdb91e182)
+
+
 # Install
 
 ```pip install -r requirements.txt```
